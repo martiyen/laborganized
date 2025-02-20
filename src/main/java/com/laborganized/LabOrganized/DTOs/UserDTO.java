@@ -12,7 +12,11 @@ public class UserDTO {
         private String name;
         private String email;
         private List<Long> storeableIds;
-        public UserDTO(User user) {
+
+    public UserDTO() {
+    }
+
+    public UserDTO(User user) {
             this.id = user.getId();
             this.username = user.getUsername();
             this.name = user.getName();

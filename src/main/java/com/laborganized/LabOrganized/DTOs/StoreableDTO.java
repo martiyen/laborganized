@@ -8,6 +8,9 @@ public class StoreableDTO {
     private Long userId;
     private Long containerId;
 
+    public StoreableDTO() {
+    }
+
     public StoreableDTO(Storeable storeable) {
         this.id = storeable.getId();
         this.name = storeable.getName();

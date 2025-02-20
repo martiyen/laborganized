@@ -13,6 +13,9 @@ public class ReagentDTO extends StoreableDTO {
     private LocalDate expirationDate;
     private String comments;
 
+    public ReagentDTO() {
+    }
+
     public ReagentDTO(Reagent reagent) {
         super(reagent);
         this.supplier = reagent.getSupplier();

@@ -10,6 +10,9 @@ public class ContainerDTO extends StoreableDTO {
     private Integer capacity;
     private List<StoreableDTO> storeableList;
 
+    public ContainerDTO() {
+    }
+
     public ContainerDTO(Container container) {
         super(container);
         this.temperature = container.getTemperature();
