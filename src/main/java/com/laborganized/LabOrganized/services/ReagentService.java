@@ -3,6 +3,7 @@ package com.laborganized.LabOrganized.services;
 import com.laborganized.LabOrganized.DTOs.ReagentCreateRequest;
 import com.laborganized.LabOrganized.DTOs.ReagentDTO;
 import com.laborganized.LabOrganized.exceptions.ContainerNotFoundException;
+import com.laborganized.LabOrganized.exceptions.ReagentNotFoundException;
 import com.laborganized.LabOrganized.exceptions.UserNotFoundException;
 import com.laborganized.LabOrganized.models.Container;
 import com.laborganized.LabOrganized.models.Reagent;
@@ -36,6 +37,14 @@ public class ReagentService {
         return reagentList;
     }
 
+    public ReagentDTO findById(Long id) {
+        Reagent reagent = reagentRepository.findById(id).orElseThrow(
+                () -> new ReagentNotFoundException("Reagent not found")
+        );
+
+        return new ReagentDTO(reagent);
+    }
+
     @Transactional
     public ReagentDTO save(ReagentCreateRequest request) {
         User user = userRepository.findById(request.userId())
@@ -64,4 +73,36 @@ public class ReagentService {
 
         return new ReagentDTO(savedReagent);
     }
+
+    @Transactional
+    public void delete(Long id) {
+        if (reagentRepository.existsById(id)) {
+            reagentRepository.deleteById(id);
+        } else {
+            throw new ReagentNotFoundException("Reagent not found");
+        }
+    }
+
+    @Transactional
+    public ReagentDTO update(ReagentDTO reagentDTO) {
+        Reagent reagent = reagentRepository.findById(reagentDTO.getId())
+                .orElseThrow(
+                        () -> new ReagentNotFoundException("Reagent not found")
+                );
+
+        reagent.setName(reagentDTO.getName());
+        reagent.setSupplier(reagentDTO.getSupplier());
+        reagent.setReference(reagentDTO.getReference());
+        reagent.setQuantity(reagentDTO.getQuantity());
+        reagent.setUnit(reagentDTO.getUnit());
+        reagent.setConcentration(reagentDTO.getConcentration());
+        reagent.setExpirationDate(reagentDTO.getExpirationDate());
+        reagent.setComments(reagentDTO.getComments());
+
+        Reagent savedReagent = reagentRepository.save(reagent);
+
+        return new ReagentDTO(savedReagent);
+    }
+
+
 }

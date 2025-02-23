@@ -23,10 +23,32 @@ public class ContainerController {
         return ResponseEntity.status(HttpStatus.OK).body(allContainers);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ContainerDTO> getById(@PathVariable Long id) {
+        ContainerDTO container = containerService.findById(id);
+
+        return ResponseEntity.status(HttpStatus.OK).body(container);
+    }
+
     @PostMapping
     public ResponseEntity<ContainerDTO> create(@RequestBody ContainerCreateRequest request) {
         ContainerDTO savedContainer = containerService.save(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(savedContainer);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> delete(@PathVariable Long id) {
+        containerService.delete(id);
+
+        return ResponseEntity.status(HttpStatus.OK).body("Container deleted successfully");
+    }
+
+    @PutMapping
+    public ResponseEntity<ContainerDTO> update(@RequestBody ContainerDTO containerDTO) {
+        ContainerDTO updatedContainer = containerService.update(containerDTO);
+
+        return ResponseEntity.status(HttpStatus.OK).body(updatedContainer);
+    }
+
 }

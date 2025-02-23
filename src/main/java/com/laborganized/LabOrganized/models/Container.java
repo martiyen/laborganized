@@ -9,7 +9,7 @@ import java.util.List;
 public class Container extends Storeable {
     private Double temperature;
     private Integer capacity;
-    @OneToMany(mappedBy = Storeable_.CONTAINER)
+    @OneToMany(mappedBy = Storeable_.CONTAINER, cascade = CascadeType.REMOVE)
     private List<Storeable> storeableList;
 
     public Double getTemperature() {

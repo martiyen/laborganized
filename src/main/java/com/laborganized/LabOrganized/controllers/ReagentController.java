@@ -23,10 +23,31 @@ public class ReagentController {
         return ResponseEntity.status(HttpStatus.OK).body(reagentList);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ReagentDTO> getById(@PathVariable Long id) {
+        ReagentDTO reagent = reagentService.findById(id);
+
+        return ResponseEntity.status(HttpStatus.OK).body(reagent);
+    }
+
     @PostMapping
     public ResponseEntity<ReagentDTO> create(@RequestBody ReagentCreateRequest request) {
         ReagentDTO savedReagent = reagentService.save(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(savedReagent);
+    }
+
+    @DeleteMapping("/{id}")
+    public String delete(@PathVariable Long id) {
+        reagentService.delete(id);
+
+        return "Reagent deleted successfully";
+    }
+
+    @PutMapping
+    public ResponseEntity<ReagentDTO> update(@RequestBody ReagentDTO reagentDTO) {
+        ReagentDTO updatedReagent = reagentService.update(reagentDTO);
+
+        return ResponseEntity.status(HttpStatus.OK).body(updatedReagent);
     }
 }

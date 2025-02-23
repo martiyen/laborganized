@@ -19,7 +19,7 @@ public class User {
     private LocalDateTime lastUpdated;
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
-    @OneToMany(mappedBy = Storeable_.USER)
+    @OneToMany(mappedBy = Storeable_.USER, cascade = CascadeType.REMOVE)
     private List<Storeable> storeableList;
 
     public Long getId() {

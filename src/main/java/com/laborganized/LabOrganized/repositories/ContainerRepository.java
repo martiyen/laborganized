@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ContainerRepository extends CrudRepository<Container, Long> {
+    Container findByName(String name);
 }

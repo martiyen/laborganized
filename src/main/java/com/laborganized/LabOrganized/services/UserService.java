@@ -2,6 +2,7 @@ package com.laborganized.LabOrganized.services;
 
 import com.laborganized.LabOrganized.DTOs.UserCreateRequest;
 import com.laborganized.LabOrganized.DTOs.UserDTO;
+import com.laborganized.LabOrganized.exceptions.UserNotFoundException;
 import com.laborganized.LabOrganized.models.User;
 import com.laborganized.LabOrganized.models.UserRole;
 import com.laborganized.LabOrganized.repositories.UserRepository;
@@ -26,6 +27,14 @@ public class UserService {
         return userDTOs;
     }
 
+    public UserDTO findById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new UserNotFoundException("User not found")
+        );
+
+        return new UserDTO(user);
+    }
+
     @Transactional
     public UserDTO save(UserCreateRequest request) {
         User user = new User();
@@ -37,6 +46,30 @@ public class UserService {
         user.setLastUpdated(LocalDateTime.now());
         user.setUserRole(UserRole.ADMIN);
         user.setStoreableList(new ArrayList<>());
+
+        User savedUser = userRepository.save(user);
+
+        return new UserDTO(savedUser);
+    }
+
+    @Transactional
+    public void deleteById(Long id) {
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+        } else {
+            throw new UserNotFoundException("User not found");
+        }
+    }
+
+    @Transactional
+    public UserDTO update(UserDTO userDTO) {
+        User user = userRepository.findById(userDTO.getId()).orElseThrow(
+                () -> new UserNotFoundException("User not found")
+        );
+
+        user.setName(userDTO.getName());
+        user.setEmail(userDTO.getEmail());
+        user.setLastUpdated(LocalDateTime.now());
 
         User savedUser = userRepository.save(user);
 
