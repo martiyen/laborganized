@@ -2,6 +2,7 @@ package com.laborganized.LabOrganized.services;
 
 import com.laborganized.LabOrganized.DTOs.UserCreateRequest;
 import com.laborganized.LabOrganized.DTOs.UserDTO;
+import com.laborganized.LabOrganized.exceptions.UniqueConstraintViolationException;
 import com.laborganized.LabOrganized.exceptions.UserNotFoundException;
 import com.laborganized.LabOrganized.models.User;
 import com.laborganized.LabOrganized.models.UserRole;
@@ -37,6 +38,9 @@ public class UserService {
 
     @Transactional
     public UserDTO save(UserCreateRequest request) {
+        validateUniqueUsername(request.username());
+        validateUniqueEmail(request.email());
+
         User user = new User();
         user.setUsername(request.username());
         user.setName(request.name());
@@ -67,12 +71,36 @@ public class UserService {
                 () -> new UserNotFoundException("User not found")
         );
 
-        user.setName(userDTO.getName());
-        user.setEmail(userDTO.getEmail());
-        user.setLastUpdated(LocalDateTime.now());
+        String newUsername = userDTO.getUsername();
+        String newName = userDTO.getName();
+        String newEmail = userDTO.getEmail();
+
+        if (newUsername != null) {
+            validateUniqueUsername(newUsername);
+            user.setUsername(newUsername);
+        }
+        if (newName != null) {
+            user.setName(newName);
+        }
+        if (newEmail != null) {
+            validateUniqueEmail(newEmail);
+            user.setEmail(newEmail);
+        }
 
         User savedUser = userRepository.save(user);
 
         return new UserDTO(savedUser);
+    }
+
+    private void validateUniqueUsername(String username) {
+        if (userRepository.existsByUsername(username)) {
+            throw new UniqueConstraintViolationException("This username is already taken. Please try another one.");
+        }
+    }
+
+    private void validateUniqueEmail(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new UniqueConstraintViolationException("This email is already taken. Please use another one.");
+        }
     }
 }

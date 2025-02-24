@@ -1,6 +1,7 @@
 package com.laborganized.LabOrganized.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,13 +12,27 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @NotBlank(message = "Username must not be empty")
+    @Size(min = 3, max = 30, message = "Username must be between 3 and 30 characters")
+    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "Username can only contain alphanumeric values")
+    @Column(unique = true)
     private String username;
+    @NotBlank(message = "Name must not be empty")
+    @Size(min = 3, max = 50, message = "Name must be between 3 and 50 characters")
+    @Pattern(regexp = "^[a-zA-ZÀ-ÿ]([\s'-](?![\s'-])|[a-zA-ZÀ-ÿ])*[a-zA-ZÀ-ÿ]$", message = "Name can only contain letters, whitespaces, apostrophes and dashes")
     private String name;
+    @NotBlank(message = "Password must not be empty")
     private String passwordHash;
+    @Email(message = "Please enter a valid email")
+    @NotEmpty(message = "Please enter a valid email")
+    @Column(unique = true)
     private String email;
+    @NotNull(message = "Date of creation must not be null")
     private LocalDateTime created;
+    @NotNull(message = "Date of last update must not be null")
     private LocalDateTime lastUpdated;
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "User role must be defined")
     private UserRole userRole;
     @OneToMany(mappedBy = Storeable_.USER, cascade = CascadeType.REMOVE)
     private List<Storeable> storeableList;
