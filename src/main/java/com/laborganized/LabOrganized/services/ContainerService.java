@@ -65,6 +65,7 @@ public class ContainerService {
                     );
 
             container.setContainer(parentContainer);
+            container.setTemperature(parentContainer.getTemperature());
         }
 
         Container savedContainer = containerRepository.save(container);

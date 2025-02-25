@@ -2,6 +2,8 @@ package com.laborganized.LabOrganized.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import java.time.LocalDate;
 
@@ -10,6 +12,7 @@ import java.time.LocalDate;
 public class Reagent extends Storeable {
     private String supplier;
     private String reference;
+    @PositiveOrZero(message = "Quantity must not be negative")
     private Double quantity;
     private String unit;
     private String concentration;

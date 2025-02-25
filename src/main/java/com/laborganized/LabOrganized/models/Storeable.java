@@ -1,6 +1,8 @@
 package com.laborganized.LabOrganized.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -8,8 +10,10 @@ public abstract class Storeable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @NotBlank(message = "Name must not be empty")
     private String name;
     @ManyToOne(fetch = FetchType.LAZY)
+    @NotNull(message = "User must not be null")
     private User user;
     @ManyToOne(fetch = FetchType.LAZY)
     private Container container;

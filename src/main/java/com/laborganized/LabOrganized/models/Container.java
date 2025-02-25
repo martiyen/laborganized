@@ -1,6 +1,7 @@
 package com.laborganized.LabOrganized.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Positive;
 
 import java.util.List;
 
@@ -8,6 +9,7 @@ import java.util.List;
 @Table(name = "containers")
 public class Container extends Storeable {
     private Double temperature;
+    @Positive(message = "Capacity must be a positive number")
     private Integer capacity;
     @OneToMany(mappedBy = Storeable_.CONTAINER, cascade = CascadeType.REMOVE)
     private List<Storeable> storeableList;
