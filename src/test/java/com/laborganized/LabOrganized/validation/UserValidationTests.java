@@ -1,7 +1,6 @@
 package com.laborganized.LabOrganized.validation;
 
 import com.laborganized.LabOrganized.models.User;
-import com.laborganized.LabOrganized.models.UserRole;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -121,7 +120,7 @@ public class UserValidationTests {
     @Test
     void shouldFailValidationWhenUserRoleIsEmpty() {
         User user = getValidUser();
-        user.setUserRole(null);
+        user.setRoles(null);
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
 
@@ -171,7 +170,7 @@ public class UserValidationTests {
         user.setEmail("example@gmail.com");
         user.setCreated(LocalDateTime.now());
         user.setLastUpdated(user.getCreated());
-        user.setUserRole(UserRole.ADMIN);
+        user.setRoles("ROLE_MEMBER");
 
         return user;
     }

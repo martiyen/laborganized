@@ -2,7 +2,6 @@ package com.laborganized.LabOrganized.validation;
 
 import com.laborganized.LabOrganized.models.Container;
 import com.laborganized.LabOrganized.models.User;
-import com.laborganized.LabOrganized.models.UserRole;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -78,7 +77,7 @@ public class ContainerValidationTests {
         user.setEmail("example@gmail.com");
         user.setCreated(LocalDateTime.now());
         user.setLastUpdated(user.getCreated());
-        user.setUserRole(UserRole.ADMIN);
+        user.setRoles("ROLE_MEMBER");
 
         Container container = new Container();
         container.setName("Example");
