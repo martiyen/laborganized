@@ -31,9 +31,8 @@ public class User {
     private LocalDateTime created;
     @NotNull(message = "Date of last update must not be null")
     private LocalDateTime lastUpdated;
-    @Enumerated(EnumType.STRING)
     @NotNull(message = "User role must be defined")
-    private UserRole userRole;
+    private String roles;
     @OneToMany(mappedBy = Storeable_.USER, cascade = CascadeType.REMOVE)
     private List<Storeable> storeableList;
 
@@ -93,12 +92,12 @@ public class User {
         this.lastUpdated = lastUpdated;
     }
 
-    public UserRole getUserRole() {
-        return userRole;
+    public String getRoles() {
+        return roles;
     }
 
-    public void setUserRole(UserRole userRole) {
-        this.userRole = userRole;
+    public void setRoles(String roles) {
+        this.roles = roles;
     }
 
     public List<Storeable> getStoreableList() {

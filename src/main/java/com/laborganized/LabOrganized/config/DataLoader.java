@@ -3,12 +3,12 @@ package com.laborganized.LabOrganized.config;
 import com.laborganized.LabOrganized.models.Container;
 import com.laborganized.LabOrganized.models.Reagent;
 import com.laborganized.LabOrganized.models.User;
-import com.laborganized.LabOrganized.models.UserRole;
 import com.laborganized.LabOrganized.repositories.ContainerRepository;
 import com.laborganized.LabOrganized.repositories.ReagentRepository;
 import com.laborganized.LabOrganized.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -22,6 +22,8 @@ public class DataLoader implements CommandLineRunner {
     ContainerRepository containerRepository;
     @Autowired
     ReagentRepository reagentRepository;
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -30,33 +32,33 @@ public class DataLoader implements CommandLineRunner {
             User admin = new User();
             admin.setUsername("admin");
             admin.setName("Administrator");
-            admin.setPasswordHash("hashed_password");
+            admin.setPasswordHash(passwordEncoder.encode("password"));
             admin.setEmail("admin@example.com");
             admin.setCreated(LocalDateTime.now());
             admin.setLastUpdated(admin.getCreated());
-            admin.setUserRole(UserRole.ADMIN);
+            admin.setRoles("ROLE_ADMIN,ROLE_MANAGER,ROLE_MEMBER");
 
             userRepository.save(admin);
 
             User jdoe = new User();
             jdoe.setUsername("jdoe");
             jdoe.setName("John Doe");
-            jdoe.setPasswordHash("hashed_password");
+            jdoe.setPasswordHash(passwordEncoder.encode("password"));
             jdoe.setEmail("jdoe@example.com");
             jdoe.setCreated(LocalDateTime.now());
             jdoe.setLastUpdated(jdoe.getCreated());
-            jdoe.setUserRole(UserRole.MANAGER);
+            jdoe.setRoles("ROLE_MANAGER,ROLE_MEMBER");
 
             userRepository.save(jdoe);
 
             User asmith = new User();
             asmith.setUsername("asmith");
             asmith.setName("Alice Smith");
-            asmith.setPasswordHash("hashed_password");
+            asmith.setPasswordHash(passwordEncoder.encode("password"));
             asmith.setEmail("asmith@example.com");
             asmith.setCreated(LocalDateTime.now());
             asmith.setLastUpdated(asmith.getCreated());
-            asmith.setUserRole(UserRole.MANAGER);
+            asmith.setRoles("ROLE_MANAGER,ROLE_MEMBER");
 
             userRepository.save(asmith);
 

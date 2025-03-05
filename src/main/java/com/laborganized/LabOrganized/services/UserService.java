@@ -5,9 +5,9 @@ import com.laborganized.LabOrganized.DTOs.UserDTO;
 import com.laborganized.LabOrganized.exceptions.UniqueConstraintViolationException;
 import com.laborganized.LabOrganized.exceptions.UserNotFoundException;
 import com.laborganized.LabOrganized.models.User;
-import com.laborganized.LabOrganized.models.UserRole;
 import com.laborganized.LabOrganized.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +19,8 @@ import java.util.List;
 public class UserService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<UserDTO> findAll() {
         List<UserDTO> userDTOs = new ArrayList<>();
@@ -44,11 +46,11 @@ public class UserService {
         User user = new User();
         user.setUsername(request.username());
         user.setName(request.name());
-        user.setPasswordHash(request.passwordHash());
+        user.setPasswordHash(passwordEncoder.encode(request.passwordHash()));
         user.setEmail(request.email());
         user.setCreated(LocalDateTime.now());
         user.setLastUpdated(LocalDateTime.now());
-        user.setUserRole(UserRole.ADMIN);
+        user.setRoles("ROLE_MANAGER,ROLE_USER");
         user.setStoreableList(new ArrayList<>());
 
         User savedUser = userRepository.save(user);
