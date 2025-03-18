@@ -23,8 +23,7 @@ public class ContainerService {
     private ContainerRepository containerRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private ReagentRepository reagentRepository;
+
 
     public List<ContainerDTO> findAll() {
         List<ContainerDTO> containerDTOS = new ArrayList<>();

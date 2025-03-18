@@ -1,6 +1,7 @@
 package com.laborganized.LabOrganized.DTOs;
 
 import com.laborganized.LabOrganized.models.Container;
+import com.laborganized.LabOrganized.models.Storeable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,6 +12,13 @@ public class ContainerDTO extends StoreableDTO {
     private List<StoreableDTO> storeableList;
 
     public ContainerDTO() {
+    }
+
+    public ContainerDTO(Long id, String name, Long userId, Long containerId, Double temperature, Integer capacity, List<StoreableDTO> storeableList) {
+        super(id, name, userId, containerId);
+        this.temperature = temperature;
+        this.capacity = capacity;
+        this.storeableList = storeableList;
     }
 
     public ContainerDTO(Container container) {

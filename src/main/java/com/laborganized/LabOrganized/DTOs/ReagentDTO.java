@@ -16,6 +16,17 @@ public class ReagentDTO extends StoreableDTO {
     public ReagentDTO() {
     }
 
+    public ReagentDTO(Long id, String name, Long userId, Long containerId, String supplier, String reference, Double quantity, String unit, String concentration, LocalDate expirationDate, String comments) {
+        super(id, name, userId, containerId);
+        this.supplier = supplier;
+        this.reference = reference;
+        this.quantity = quantity;
+        this.unit = unit;
+        this.concentration = concentration;
+        this.expirationDate = expirationDate;
+        this.comments = comments;
+    }
+
     public ReagentDTO(Reagent reagent) {
         super(reagent);
         this.supplier = reagent.getSupplier();

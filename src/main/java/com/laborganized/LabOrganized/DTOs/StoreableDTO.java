@@ -11,6 +11,13 @@ public class StoreableDTO {
     public StoreableDTO() {
     }
 
+    public StoreableDTO(Long id, String name, Long userId, Long containerId) {
+        this.id = id;
+        this.name = name;
+        this.userId = userId;
+        this.containerId = containerId;
+    }
+
     public StoreableDTO(Storeable storeable) {
         this.id = storeable.getId();
         this.name = storeable.getName();

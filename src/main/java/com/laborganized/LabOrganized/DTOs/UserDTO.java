@@ -3,6 +3,7 @@ package com.laborganized.LabOrganized.DTOs;
 import com.laborganized.LabOrganized.models.Storeable;
 import com.laborganized.LabOrganized.models.User;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,14 @@ public class UserDTO {
         private List<Long> storeableIds;
 
     public UserDTO() {
+    }
+
+    public UserDTO(Long id, String username, String name, String email, List<Long> storeableIds) {
+        this.id = id;
+        this.username = username;
+        this.name = name;
+        this.email = email;
+        this.storeableIds = new ArrayList<>();
     }
 
     public UserDTO(User user) {
