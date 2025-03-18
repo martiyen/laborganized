@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
@@ -32,6 +29,7 @@ public class ReagentIT {
     DataLoader dataLoader;
 
     private final String URI = "/api/v1/reagents";
+    private String token;
 
     @BeforeEach
     void resetDatabase() {
@@ -41,39 +39,83 @@ public class ReagentIT {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        ResponseEntity<String> auth = restTemplate.withBasicAuth("jdoe", "password").postForEntity("/token", RequestEntity.EMPTY, String.class);
+        token = auth.getBody();
     }
 
     @Test
-    void shouldFindAllReagents() {
-        ResponseEntity<ReagentDTO[]> response = restTemplate.getForEntity(URI, ReagentDTO[].class);
+    void shouldFindAllReagents_WhenAuthenticatedAndRoleIsADMIN() {
+        ResponseEntity<String> auth = restTemplate.withBasicAuth("admin", "password").postForEntity("/token", RequestEntity.EMPTY, String.class);
+        token = auth.getBody();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<ReagentDTO[]> response = restTemplate.exchange(URI + "/all", HttpMethod.GET, request, ReagentDTO[].class);
 
         assertThat(response.getBody().length).isEqualTo(3);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
-    void shouldFindReagentByIdWhenValid() {
+    void shouldNotFindAllReagents_WhenAuthenticatedAndRoleIsNotADMIN() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<ReagentDTO[]> response = restTemplate.exchange(URI + "/all", HttpMethod.GET, request, ReagentDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void shouldFindReagentById_WhenValid_WhenAuthenticated() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
         Long id = reagentRepository.findByName("Interleukin-4").getId();
-        ResponseEntity<ReagentDTO> response = restTemplate.getForEntity(URI + "/" + id, ReagentDTO.class);
+        ResponseEntity<ReagentDTO> response = restTemplate.exchange(URI + "/" + id, HttpMethod.GET, request, ReagentDTO.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getId()).isEqualTo(id);
     }
 
     @Test
-    void shouldNotFindReagentByIdWhenInvalid() {
-        ResponseEntity<String> response = restTemplate.getForEntity(URI + "/9999", String.class);
+    void shouldNotFindReagentById_WhenInvalid_WhenAuthenticated() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(URI + "/9999", HttpMethod.GET, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isEqualTo("Reagent not found");
     }
 
     @Test
-    void shouldSaveReagentWhenValid() {
+    void shouldFindAllUserReagents_WhenAuthenticated() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<ReagentDTO[]> response = restTemplate.exchange(URI, HttpMethod.GET, request, ReagentDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().length).isEqualTo(2);
+    }
+
+    @Test
+    void shouldSaveReagent_WhenValid_WhenAuthenticated() {
         long initialReagentCount = reagentRepository.count();
         Long userId = reagentRepository.findByName("Interleukin-4").getUser().getId();
         Long containerId = reagentRepository.findByName("Interleukin-4").getContainer().getId();
-
 
         ReagentCreateRequest reagentCreateRequest = new ReagentCreateRequest(
                 "Trypsin",
@@ -88,7 +130,12 @@ public class ReagentIT {
                 null
         );
 
-        ResponseEntity<ReagentDTO> response = restTemplate.postForEntity(URI, reagentCreateRequest, ReagentDTO.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<ReagentCreateRequest> request = new HttpEntity<>(reagentCreateRequest, headers);
+
+        ResponseEntity<ReagentDTO> response = restTemplate.postForEntity(URI, request, ReagentDTO.class);
 
         assertThat(response.getBody().getName()).isEqualTo("Trypsin");
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -96,13 +143,18 @@ public class ReagentIT {
     }
 
     @Test
-    void shouldDeleteReagentWhenValid() {
+    void shouldDeleteReagent_WhenValid_WhenAuthenticated() {
         long initialReagentCount = reagentRepository.count();
         Long id = reagentRepository.findByName("Interleukin-4").getId();
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
         //Reagents and Containers share id generation because they both extend Storeable abstract class
         //We need to use id=4 because id=1 to id=3 are containers
-        ResponseEntity<String> response = restTemplate.exchange(URI + "/" + id, HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(URI + "/" + id, HttpMethod.DELETE, request, String.class);
 
         assertThat(response.getBody()).isEqualTo("Reagent deleted successfully");
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -110,7 +162,7 @@ public class ReagentIT {
     }
 
     @Test
-    void shouldUpdateReagentWhenValid() {
+    void shouldUpdateReagent_WhenValid_WhenAuthenticated() {
         long initialReagentCount = reagentRepository.count();
         Long id = reagentRepository.findByName("Interleukin-4").getId();
 
@@ -118,7 +170,11 @@ public class ReagentIT {
         reagentDTO.setId(id);
         reagentDTO.setName("Updated reagent");
 
-        HttpEntity<ReagentDTO> request = new HttpEntity<>(reagentDTO);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+
+        HttpEntity<ReagentDTO> request = new HttpEntity<>(reagentDTO, headers);
 
         ResponseEntity<ReagentDTO> response = restTemplate.exchange(URI, HttpMethod.PUT, request, ReagentDTO.class);
 

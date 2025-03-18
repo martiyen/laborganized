@@ -10,10 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -29,6 +27,7 @@ public class ContainerIT {
     DataLoader dataLoader;
 
     private final String URI = "/api/v1/containers";
+    private String token;
 
     @BeforeEach
     void resetDatabase() {
@@ -38,35 +37,81 @@ public class ContainerIT {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+
+        ResponseEntity<String> auth = restTemplate.withBasicAuth("jdoe", "password").postForEntity("/token", RequestEntity.EMPTY, String.class);
+        token = auth.getBody();
     }
 
     @Test
-    void shouldFindAllContainers() {
-        ResponseEntity<ContainerDTO[]> response = restTemplate.getForEntity(URI, ContainerDTO[].class);
+    void shouldFindAllContainers_WhenAuthenticatedAndRoleIsADMIN() {
+        ResponseEntity<String> auth = restTemplate.withBasicAuth("admin", "password").postForEntity("/token", RequestEntity.EMPTY, String.class);
+        token = auth.getBody();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<ContainerDTO[]> response = restTemplate.exchange(URI + "/all", HttpMethod.GET, request, ContainerDTO[].class);
 
         assertThat(response.getBody().length).isEqualTo(3);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
-    void shouldFindContainerByIdWhenValidId() {
+    void shouldNotFindAllContainers_WhenAuthenticatedAndRoleIsNotADMIN() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<ContainerDTO[]> response = restTemplate.exchange(URI + "/all", HttpMethod.GET, request, ContainerDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void shouldFindContainerById_WhenValidId_WhenAuthenticated() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
         Long id = containerRepository.findByName("Freezer A").getId();
-        ResponseEntity<ContainerDTO> response = restTemplate.getForEntity(URI + "/" + id, ContainerDTO.class);
+        ResponseEntity<ContainerDTO> response = restTemplate.exchange(URI + "/" + id, HttpMethod.GET, request, ContainerDTO.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getId()).isEqualTo(id);
     }
 
     @Test
-    void shouldNotFindContainerByIdWhenInvalidId() {
-        ResponseEntity<String> response = restTemplate.getForEntity(URI + "/9999", String.class);
+    void shouldNotFindContainerById_WhenInvalidId_WhenAuthenticated() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(URI + "/9999", HttpMethod.GET, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isEqualTo("Container not found");
     }
 
     @Test
-    void shouldSaveContainerWhenValid() {
+    void shouldFindAllUserContainers_WhenAuthenticated() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<ContainerDTO[]> response = restTemplate.exchange(URI, HttpMethod.GET, request, ContainerDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().length).isEqualTo(2);
+    }
+
+    @Test
+    void shouldSaveContainer_WhenValid_WhenAuthenticated() {
         long initialContainerCount = containerRepository.count();
         Long userId = containerRepository.findByName("Freezer A").getUser().getId();
 
@@ -78,7 +123,12 @@ public class ContainerIT {
                 null
         );
 
-        ResponseEntity<ContainerDTO> response = restTemplate.postForEntity(URI, containerCreateRequest, ContainerDTO.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<ContainerCreateRequest> request = new HttpEntity<>(containerCreateRequest, headers);
+
+        ResponseEntity<ContainerDTO> response = restTemplate.postForEntity(URI, request, ContainerDTO.class);
 
         assertThat(response.getBody().getName()).isEqualTo("Fridge");
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -86,11 +136,16 @@ public class ContainerIT {
     }
 
     @Test
-    void shouldDeleteContainerWhenValid() {
+    void shouldDeleteContainer_WhenValid_WhenAuthenticated() {
         long initialContainerCount = containerRepository.count();
         Long id = containerRepository.findByName("Freezer A").getId();
 
-        ResponseEntity<String> response = restTemplate.exchange(URI + "/" + id, HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(URI + "/" + id, HttpMethod.DELETE, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo("Container deleted successfully");
@@ -100,7 +155,7 @@ public class ContainerIT {
     }
 
     @Test
-    void shouldUpdateContainerWhenValid() {
+    void shouldUpdateContainer_WhenValid_WhenAuthenticated() {
         long initialContainerCount = containerRepository.count();
         Long id = containerRepository.findByName("Freezer A").getId();
 
@@ -108,7 +163,11 @@ public class ContainerIT {
         container.setId(id);
         container.setName("Updated container");
 
-        HttpEntity<ContainerDTO> request = new HttpEntity<>(container);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+
+        HttpEntity<ContainerDTO> request = new HttpEntity<>(container, headers);
 
         ResponseEntity<ContainerDTO> response = restTemplate.exchange(URI, HttpMethod.PUT, request, ContainerDTO.class);
 

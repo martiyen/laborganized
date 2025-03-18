@@ -25,44 +25,77 @@ public class UserIT {
     DataLoader dataLoader;
 
     private final String URI = "/api/v1/users";
+    private String token;
 
     @BeforeEach
-    void resetDatabase() {
+    void setUp() {
         userRepository.deleteAll();
         try {
             dataLoader.run();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        ResponseEntity<String> auth = restTemplate.withBasicAuth("admin", "password").postForEntity("/token", RequestEntity.EMPTY, String.class);
+        token = auth.getBody();
     }
 
     @Test
-    void shouldFindAllUsers() {
-        ResponseEntity<UserDTO[]> response = restTemplate.getForEntity(URI, UserDTO[].class);
+    void shouldFindAllUsers_WhenAuthenticatedAndRoleIsADMIN() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<UserDTO[]> response = restTemplate.exchange(URI, HttpMethod.GET, request, UserDTO[].class);
 
         assertThat(response.getBody().length).isEqualTo(3);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
-    void shouldFindUserByIdWhenValidId() {
-        Long id = userRepository.findByUsername("admin").getId();
-        ResponseEntity<UserDTO> response = restTemplate.getForEntity(URI + "/" + id, UserDTO.class);
+    void shouldNotFindAllUsers_WhenAuthenticatedAndRoleIsNotADMIN() {
+        ResponseEntity<String> auth = restTemplate.withBasicAuth("jdoe", "password").postForEntity("/token", RequestEntity.EMPTY, String.class);
+        token = auth.getBody();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<UserDTO[]> response = restTemplate.exchange(URI, HttpMethod.GET, request, UserDTO[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void shouldFindUserById_WhenValidId_WhenAuthenticatedAndRoleIsADMIN() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        Long id = userRepository.findByUsername("admin").orElseThrow().getId();
+        ResponseEntity<UserDTO> response = restTemplate.exchange(URI + "/" + id, HttpMethod.GET, request, UserDTO.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getId()).isEqualTo(id);
     }
 
     @Test
-    void shouldNotFindUserByIdWhenInvalidId() {
-        ResponseEntity<String> response = restTemplate.getForEntity(URI + "/9999", String.class);
+    void shouldNotFindUserById_WhenInvalidId_WhenAuthenticatedAndRoleIsADMIN() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(URI + "/9999", HttpMethod.GET, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isEqualTo("User not found");
     }
 
     @Test
-    void shouldSaveUserWhenValid() {
+    void shouldSaveUser_WhenValid_WhenAuthenticatedAndRoleIsADMIN() {
         long initialUserCount = userRepository.count();
 
         UserCreateRequest userCreateRequest = new UserCreateRequest(
@@ -72,7 +105,12 @@ public class UserIT {
                 "lluke@gmail.com"
         );
 
-        ResponseEntity<UserDTO> response = restTemplate.postForEntity(URI, userCreateRequest, UserDTO.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<UserCreateRequest> request = new HttpEntity<>(userCreateRequest, headers);
+
+        ResponseEntity<UserDTO> response = restTemplate.postForEntity(URI, request, UserDTO.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody().getName()).isEqualTo("Lucky Luke");
@@ -80,11 +118,16 @@ public class UserIT {
     }
 
     @Test
-    void shouldDeleteUserWhenValidId() {
+    void shouldDeleteUser_WhenValidId_WhenAuthenticatedAndRoleIsADMIN() {
         long initialUserCount = userRepository.count();
-        Long id = userRepository.findByUsername("admin").getId();
+        Long id = userRepository.findByUsername("admin").orElseThrow().getId();
 
-        ResponseEntity<String> response = restTemplate.exchange(URI + "/" + id, HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(URI + "/" + id, HttpMethod.DELETE, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(userRepository.count()).isEqualTo(initialUserCount - 1);
@@ -92,10 +135,15 @@ public class UserIT {
     }
 
     @Test
-    void shouldNotDeleteUserWhenIdNotValid() {
+    void shouldNotDeleteUser_WhenIdNotValid_WhenAuthenticatedAndRoleIsADMIN() {
         long initialUserCount = userRepository.count();
 
-        ResponseEntity<String> response = restTemplate.exchange(URI + "/9999", HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> request = new HttpEntity<>("", headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(URI + "/9999", HttpMethod.DELETE, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(userRepository.count()).isEqualTo(initialUserCount);
@@ -103,19 +151,20 @@ public class UserIT {
     }
 
     @Test
-    void shouldUpdateUserWhenValid() {
-        Long id = userRepository.findByUsername("admin").getId();
+    void shouldUpdateUser_WhenValid_WhenAuthenticatedAndRoleIsADMIN() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + token);
+
+        Long id = userRepository.findByUsername("admin").orElseThrow().getId();
         UserDTO user = new UserDTO();
         user.setId(id);
         user.setEmail("updated@example.com");
-        HttpEntity<UserDTO> request = new HttpEntity<>(user);
+        HttpEntity<UserDTO> request = new HttpEntity<>(user, headers);
 
         ResponseEntity<UserDTO> response = restTemplate.exchange(URI, HttpMethod.PUT, request, UserDTO.class);
 
         assertThat(response.getBody().getEmail()).isEqualTo("updated@example.com");
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
-
-
-
 }
