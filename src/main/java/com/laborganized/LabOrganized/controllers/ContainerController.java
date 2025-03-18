@@ -6,6 +6,7 @@ import com.laborganized.LabOrganized.services.ContainerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +17,8 @@ public class ContainerController {
     @Autowired
     private ContainerService containerService;
 
-    @GetMapping
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<List<ContainerDTO>> getAll() {
         List<ContainerDTO> allContainers = containerService.findAll();
 
@@ -28,6 +30,13 @@ public class ContainerController {
         ContainerDTO container = containerService.findById(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(container);
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<ContainerDTO>> getUserContainers() {
+        List<ContainerDTO> containers = containerService.findUserContainers();
+
+        return ResponseEntity.status(HttpStatus.OK).body(containers);
     }
 
     @PostMapping

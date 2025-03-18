@@ -10,6 +10,7 @@ import com.laborganized.LabOrganized.repositories.ContainerRepository;
 import com.laborganized.LabOrganized.repositories.ReagentRepository;
 import com.laborganized.LabOrganized.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,21 @@ public class ContainerService {
         );
 
         return new ContainerDTO(container);
+    }
+
+    public List<ContainerDTO> findUserContainers() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new UserNotFoundException("User not found")
+        );
+
+        List<ContainerDTO> containerDTOS = new ArrayList<>();
+
+        containerRepository.findAllByUser(user).forEach(
+                container -> containerDTOS.add(new ContainerDTO(container))
+        );
+
+        return containerDTOS;
     }
 
     @Transactional

@@ -6,6 +6,7 @@ import com.laborganized.LabOrganized.services.ReagentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +17,8 @@ public class ReagentController {
     @Autowired
     private ReagentService reagentService;
 
-    @GetMapping
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<List<ReagentDTO>> getAll() {
         List<ReagentDTO> reagentList = reagentService.findAll();
 
@@ -28,6 +30,13 @@ public class ReagentController {
         ReagentDTO reagent = reagentService.findById(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(reagent);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ReagentDTO>> getUserReagents() {
+        List<ReagentDTO> userReagents = reagentService.findUserReagents();
+
+        return ResponseEntity.status(HttpStatus.OK).body(userReagents);
     }
 
     @PostMapping
