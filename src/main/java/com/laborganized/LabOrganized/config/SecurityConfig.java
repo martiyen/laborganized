@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                        .requestMatchers(("/api/v1/register")).permitAll()
                         .requestMatchers("/api/v1/users").hasAuthority("SCOPE_ROLE_ADMIN")
                         .anyRequest().authenticated())
                 .userDetailsService(jpaUserDetailsService)
