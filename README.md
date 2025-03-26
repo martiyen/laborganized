@@ -41,6 +41,8 @@ To set up and run LabOrganized locally, follow these steps.
 
 ### **Prerequisites**
 - Install **[Java 21](https://www.oracle.com/java/technologies/downloads/#java21)**
+- Install **[OpenSSL](https://openssl-library.org/)**
+- Install **[Docker](https://docs.docker.com/get-started/get-docker/)**
 
 ### **Installation**
 
@@ -102,7 +104,7 @@ By default, the server runs at **[http://localhost:8080](http://localhost:8080)*
 
 📌 **Example: Login & Retrieve JWT Token**
 ```sh
-curl -X POST "http://localhost:8080/token" -u "admin:password"
+curl -X POST "http://localhost:8080/token" -u "jdoe:password"
 ```
 This returns a token, which should be used in all further requests:
 ```sh
