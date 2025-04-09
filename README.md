@@ -54,7 +54,8 @@ cd laborganized
 
 2️⃣ Navigate to `src/main/resources/` and create a `certs` folder
 ```sh
-mkdir -p src/main/resources/certs
+mkdir src/main/resources/certs
+cd src/main/resources/certs
 ```
 
 3️⃣ Generate an RSA key pair for JWT authentication
