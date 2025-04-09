@@ -1,6 +1,6 @@
 # **LabOrganized**
 
-A **backend system** for laboratory inventory management, built with **Spring Boot**, **MySQL**, and secured with **Spring Security & JWT authentication**.
+A backend system for laboratory inventory management, built with **Spring Boot**, **MySQL**, and secured with **Spring Security & JWT authentication**.
 
 ## **Table of Contents**
 
@@ -16,22 +16,22 @@ A **backend system** for laboratory inventory management, built with **Spring Bo
 
 ## **About The Project**
 
-**LabOrganized** is a backend API designed for **laboratories** to manage their **reagent inventory** efficiently.
+LabOrganized is a backend API designed for laboratories to manage their reagent inventory efficiently.
 
 ### **Key Features**
-✅ User authentication with **JWT tokens**  
-✅ Role-based authorization (**ADMIN** & **USER**)  
+✅ User authentication with JWT tokens  
+✅ Role-based authorization (ADMIN & USER)  
 ✅ CRUD operations for reagent stock management  
-✅ Secured endpoints with **Spring Security**  
+✅ Secured endpoints with Spring Security  
 ✅ Admin-exclusive endpoints for user management
 
 ---
 
 ## **Built With**
 
-- ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white) **[Java 21](https://www.java.com)**
-- ![Spring Boot](https://img.shields.io/badge/SpringBoot-6DB33F?style=flat-square&logo=Spring&logoColor=white) **[Spring Boot](https://spring.io/)**
-- ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white) **[MySQL](https://www.mysql.com/)**
+- ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+- ![Spring Boot](https://img.shields.io/badge/SpringBoot-6DB33F?style=flat-square&logo=Spring&logoColor=white)
+- ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 
 ---
 
@@ -57,7 +57,7 @@ cd laborganized
 mkdir -p src/main/resources/certs
 ```
 
-3️⃣ Generate an **RSA key pair** for **JWT authentication**
+3️⃣ Generate an RSA key pair for JWT authentication
 ```sh
 # Generate RSA key pair
 openssl genrsa -out keypair.pem 2048
@@ -79,7 +79,7 @@ rm keypair.pem
 ## **Usage**
 
 1️⃣ **Start the Application**  
-Run the project from your preferred **IDE** or execute:
+Run the project from your preferred IDE or execute:
 ```sh
 ./mvnw spring-boot:run
 ```
@@ -87,7 +87,7 @@ By default, the server runs at **[http://localhost:8080](http://localhost:8080)*
 
 2️⃣ **User Authentication**
 - Register a new account via `POST /register`
-- Obtain a **JWT token** by sending a `POST` request to `/token` with **Basic Authentication**
+- Obtain a JWT token by sending a `POST` request to `/token` with Basic Authentication
 
 3️⃣ **Default Test Users** (Preloaded in the database)  
 
@@ -98,11 +98,11 @@ By default, the server runs at **[http://localhost:8080](http://localhost:8080)*
 | `asmith` | `password` | USER  |
 
 4️⃣ **Using the API**
-- **All endpoints** (except `/register`) require authentication
-- Include the JWT token as a **Bearer Token** in requests
-- Admin-only actions require **ROLE_ADMIN** authorization
+- All endpoints (except `/register`) require authentication
+- Include the JWT token as a Bearer Token in requests
+- Admin-only actions require ROLE_ADMIN authorization
 
-📌 **Example: Login & Retrieve JWT Token**
+📌 Example: Login & Retrieve JWT Token
 ```sh
 curl -X POST "http://localhost:8080/token" -u "jdoe:password"
 ```
